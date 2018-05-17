@@ -1,0 +1,77 @@
+---
+title: "Practice Example"
+author: "Greg Buck"
+date: "May 17, 2018"
+output: 
+  html_document: 
+    theme: lumen
+    toc: yes
+---
+
+```{r Libraries, echo=FALSE, message=FALSE}
+library(ggplot2)
+library(DT)
+library(knitr)
+
+```
+
+
+**Here is bold text** this text is bold
+
+*Italics text*
+echo vs output in code chunks
+
+
+#code
+
+```{r Title _of code_chunk, output = T, eval = T, eval = T}
+
+x<-2
+print(x^3)
+
+
+```
+
+`r sqrt(2)`
+
+More text
+
+$\sum_{i=0}^n i^2 = \frac{(n^2+n)(2n+1)}{6}$
+
+
+
+#plot1
+
+```{r Second_code_chunk, echo=FALSE}
+
+plot(1:10)
+
+ggplot(data.frame(x=rnorm(100), y=rnorm(100)), aes(x, y)) +
+  geom_point()
+
+
+```
+
+tables...........
+
+
+```{r Tables}
+
+data('mpg')
+DT::datatable(mpg, caption = "milage")
+
+
+```
+
+
+
+```{r knitr tables}
+t<-head(mpg)
+
+kable(t)
+
+```
+
+
+
+
