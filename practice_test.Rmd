@@ -344,3 +344,15 @@ ggplot(permits,aes(x=Value,y=StdDev,color=Gear))+
 mean_permits <- permits %>% 
   group_by(Gear, Region) %>% 
   summarise()
+```
+
+
+
+
+
+
+
+
+
+
+
