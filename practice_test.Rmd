@@ -12,6 +12,8 @@ output:
 library(ggplot2)
 library(DT)
 library(knitr)
+library(dplyr)
+library(tidyr)
 
 ```
 
@@ -54,6 +56,7 @@ ggplot(data.frame(x=rnorm(100), y=rnorm(100)), aes(x, y)) +
 
 tables...........
 
+#DT table
 
 ```{r Tables}
 
@@ -63,7 +66,7 @@ DT::datatable(mpg, caption = "milage")
 
 ```
 
-
+#kable table
 
 ```{r knitr tables}
 t<-head(mpg)
@@ -72,6 +75,272 @@ kable(t)
 
 ```
 
+#pull data
+
+```{r}
+
+catch_df <- read.csv(url("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/df35b.302.1", method = "libcurl"),
+                    stringsAsFactors = FALSE)
+head(catch_df)
+
+```
+
+
+```{r}
+
+catch_df <-  catch_df %>% 
+  select(-All, -notesRegCode) %>% 
+  gather(species, catch, -Region, -Year)
+
+head(catch_df)
+
+
+```
+
+
+#joins
+
+```{r}
+
+region_defs <- read.csv(url("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/df35b.303.1", method = "libcurl"),
+                        stringsAsFactors = FALSE)
+
+
+head(region_defs)
+
+
+```
 
 
 
+
+```{r}
+
+region_defs <- region_defs %>% 
+  select(code, mgmtArea)
+
+head(region_defs)
+
+```
+
+```{r}
+
+
+catch_joined <- left_join(catch_df,region_defs,by = c("Region" = "Code"))
+
+
+head(catch_joined)
+
+```
+
+day2
+
+##ggplot2
+
+```{r}
+
+suppressPackageStartupMessages({
+  
+  library(ggplot2)
+  library(tidyr)
+  library(dplyr)
+})
+
+```
+
+
+
+
+```{r}
+# https://knb.ecoinformatics.org/#view/urn:uuid:e05865d7-678d-4513-9061-2ab7d979f8e7
+# Search 'permit value'
+permits <- read.csv(url("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/urn%3Auuid%3Aa3c58bd6-481e-4c64-aa93-795df10a4664", method = "libcurl"),
+                    stringsAsFactors = FALSE)
+```
+
+
+
+```{r}
+
+ggplot(permits, aes(x = Value, y = StdDev, size = Range)) + 
+  geom_point(aes(color = "blue"))
+
+
+```
+
+
+
+histogram---- no y in aes
+
+```{r}
+
+ggplot(permits, aes(x = Value)) + 
+  geom_histogram(binwideth=1e2)
+
+
+```
+
+
+
+
+```{r}
+
+ggplot(permits, aes(x = Gear, y = Value)) + 
+  geom_boxplot()
+
+
+```
+
+
+```{r}
+
+unique(permits$Region)
+
+```
+
+
+
+
+```{r}
+
+permits_ci <- permits %>%
+  filter(Region == "Bristol Bay")
+
+ggplot(permits_ci, aes(x = Gear, y = Value)) + 
+  geom_violin()
+
+
+```
+
+
+
+
+
+
+```{r}
+
+ggplot(permits, aes(x = Gear, y = Value)) + 
+  geom_boxplot()
+
+
+```
+
+
+
+
+
+
+```{r}
+
+permits_se_seine <- permits %>%
+  filter(Gear=="Purse Seine",
+         Region=="Southeast")
+
+
+permits_bb <- permits %>%
+  filter(Region=="Bristol BAy")
+
+
+ggplot(permits_se_seine, aes(x = Year, y = Value)) + 
+  geom_point()+
+  geom_line()+
+  scale_y_continuous(limits = c(0,max(permits_se_seine$Value)))+ 
+  scale_x_continuous(limits = c(2000,max(permits_se_seine$Year)))
+
+
+```
+
+
+
+```{r}
+
+ggplot(permits,aes(x=Value,y=StdDev,color=Gear))+
+  geom_point()+
+  scale_color_manual(values = c("red", "orange", "blue","white","black","green","yellow"))
+
+
+
+ggplot(permits,aes(x=Value,y=StdDev,color=Gear))+
+  geom_point()+
+  scale_color_brewer()
+
+```
+
+#combine dplyr and ggplot
+
+```{r}
+
+permits %>%
+  group_by(Gear) %>% 
+  summarize(meanval = mean(Value, na.rm = T)) %>% 
+  arrange(Gear) %>% 
+  ggplot(aes(x=Gear,y=meanval/sum(meanval)))+
+  geom_col()
+
+
+
+```
+
+## scale breaks
+
+```{r}
+
+ggplot(permits_se_seine, aes(Year, Value)) +
+  geom_point() +
+  geom_line() +
+  scale_x_continuous(breaks = c(1990, 1993,1993))
+
+```
+
+
+
+
+## facets
+
+```{r}
+
+ggplot(permits_bb, aes(Year, Value)) +
+  geom_point() +
+  geom_line() +
+  scale_x_continuous(breaks = c(1990, 1993,1993)) +
+  facet_wrap(~Gear)
+
+```
+
+
+```{r}
+
+unique(permits$Region)
+
+
+```
+
+
+
+##themes
+
+```{r}
+
+#theme library online?
+#can define custom theme
+#eg 'my_theme <- theme()'
+
+
+
+ggplot(permits,aes(x=Value,y=StdDev,color=Gear))+
+  geom_point()+
+  scale_color_manual(values = c("red", "orange", "blue","white","black","green","yellow"))
+  theme(axis.title = element_text(size = 12))+
+  theme(legend.position = "bottom")
+
+```
+
+
+
+
+
+```{r}
+
+mean_permits <- permits %>% 
+  group_by(Gear, Region) %>% 
+  summarise()
